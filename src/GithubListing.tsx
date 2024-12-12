@@ -149,6 +149,11 @@ export function GithubListing() {
     [isFetchingRepos, errorRepos],
   );
 
+  const isErrorVisible = useMemo(
+    () => (errorRepos || errorUsers) && !isFetchingRepos && !isFetchingUsers,
+    [errorRepos, errorUsers, isFetchingRepos, isFetchingUsers],
+  );
+
   const reposAndUsers: (Repository | User)[] = useMemo(() => {
     const combined: (Repository | User)[] = [
       ...(Array.isArray(repositories?.items) ? repositories.items : []),
@@ -212,7 +217,7 @@ export function GithubListing() {
           <Spinner />
         </div>
       )}
-      {(errorRepos || errorUsers) && (
+      {isErrorVisible && (
         <p className="text-red-500 max-w-60">
           {(errorRepos && errorRepos.message) ||
             (errorUsers && errorUsers.message)}
