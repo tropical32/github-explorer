@@ -21,6 +21,21 @@ type Repository = {
   watchers: number;
   description: string;
 };
+
+type UserResult = {
+  incomplete_results: boolean;
+  total_count: number;
+  items: User[];
+};
+
+type User = {
+  id: number;
+  login: string;
+  html_url: string;
+  avatar_url: string;
+  gravatar_url: string;
+};
+
 function RepositoryEntry({ repository }: { repository: Repository }) {
   return (
     <>
@@ -52,18 +67,32 @@ function RepositoryEntry({ repository }: { repository: Repository }) {
   );
 }
 
+function UserEntry({ user }: { user: User }) {
+  return (
+    <div className="flex align-middle gap-3">
+      <img width={32} height={32} src={user.gravatar_url ?? user.avatar_url} />
+      <a
+        href={user.html_url}
+        className="text-blue-500 hover:underline w-60"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {user.login}
+      </a>
+    </div>
+  );
+}
+
 export function GithubListing() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [shouldFetch, setShouldFetch] = useState(false);
 
-  console.log(shouldFetch);
-
   const {
-    error,
+    error: errorRepos,
     data: repositories,
-    isFetching,
+    isFetching: isFetchingRepos,
   } = useQuery<RepositoryResult>({
-    queryKey: ["github", inputRef?.current?.value],
+    queryKey: ["repos", inputRef?.current?.value],
     queryFn: async () => {
       const response = await fetch(
         `https://api.github.com/search/repositories?q=${inputRef?.current?.value}`,
@@ -74,7 +103,21 @@ export function GithubListing() {
     staleTime: 1000 * 60 * 5,
   });
 
-  console.log(repositories);
+  const {
+    error: errorUsers,
+    data: users,
+    isFetching: isFetchingUsers,
+  } = useQuery<UserResult>({
+    queryKey: ["users", inputRef?.current?.value],
+    queryFn: async () => {
+      const response = await fetch(
+        `https://api.github.com/search/users?q=${inputRef?.current?.value}`,
+      );
+      return await response.json();
+    },
+    enabled: shouldFetch,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const onChange = useCallback((textLen: number) => {
     setShouldFetch(textLen >= MIN_CHAR_SEARCH);
@@ -91,16 +134,16 @@ export function GithubListing() {
         placeholder="Linux"
         onChange={(e) => onChange(e.target.value.length)}
       />
-      {isFetching && !error && (
+      {isFetchingRepos && !errorRepos && (
         <div className="flex justify-center mt-3">
           <Spinner />
         </div>
       )}
-      {!isFetching && !error && repositories?.total_count === 0 && (
-        <p className="text-xl text-center mt-3">No results</p>
+      {!isFetchingRepos && !errorRepos && repositories?.total_count === 0 && (
+        <p className="text-xl text-center mt-3">No results.</p>
       )}
-      {!isFetching &&
-        !error &&
+      {!isFetchingRepos &&
+        !errorRepos &&
         repositories &&
         repositories?.total_count > 0 && (
           <>
@@ -115,11 +158,19 @@ export function GithubListing() {
             </div>
           </>
         )}
-      {error && <p className="mt-3 text-red-500">{error.message}</p>}
+      {!isFetchingUsers && !errorUsers && users && users?.total_count > 0 && (
+        <>
+          <p className="text-xl text-center">Users</p>
+          <div className="flex flex-col gap-6">
+            {users?.items.map((user) => (
+              <UserEntry key={user.id} user={user}></UserEntry>
+            ))}
+          </div>
+        </>
+      )}
+      {errorRepos && <p className="mt-3 text-red-500">{errorRepos.message}</p>}
     </div>
   );
 }
-
-// forks_count, full_name, make it clickable, id (key), language, name (or full_name), stargazers_count, watchers
 
 export default GithubListing;
