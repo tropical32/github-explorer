@@ -108,27 +108,23 @@ function UserEntry({ user }: { user: User }) {
   );
 }
 
-function useKeyboardListener({
-  isInputFocused,
-  setFocusedIndex,
-  openLink,
-  maxItems,
-}: {
-  isInputFocused: boolean;
-  setFocusedIndex: React.Dispatch<React.SetStateAction<number>>;
-  openLink: () => void;
-  maxItems: number;
-}) {
+function useKeyboardListener(
+  isDropdownVisible: boolean,
+  setFocusedIndex: React.Dispatch<React.SetStateAction<number>>,
+  openLink: VoidFunction,
+  maxItems: number,
+) {
   useEffect(() => {
     function keyDownHandler(e: globalThis.KeyboardEvent) {
-      if (isInputFocused) {
-        if (e.key === "ArrowUp") {
-          setFocusedIndex((index) => (index === 0 ? 0 : index - 1));
-        } else if (e.key == "ArrowDown") {
-          setFocusedIndex((index) => (index === maxItems ? index : index + 1));
-        } else if (e.key === "Enter") {
-          openLink();
-        }
+      if (!isDropdownVisible) return;
+
+      if (e.key === "ArrowUp") {
+        // TODO: prevent cursor from jumping to the beginning
+        setFocusedIndex((index) => (index === 0 ? 0 : index - 1));
+      } else if (e.key == "ArrowDown") {
+        setFocusedIndex((index) => (index === maxItems ? index : index + 1));
+      } else if (e.key === "Enter") {
+        openLink();
       }
     }
 
@@ -137,13 +133,33 @@ function useKeyboardListener({
     return () => {
       document.removeEventListener("keydown", keyDownHandler);
     };
-  }, [isInputFocused, setFocusedIndex, openLink, maxItems]);
+  }, [isDropdownVisible, setFocusedIndex, openLink, maxItems]);
+}
+
+function useUnclickMouseListener(
+  element: HTMLDivElement | null,
+  setIsDropdownVisible: (isDropdownVisible: boolean) => void,
+) {
+  useEffect(() => {
+    function handleClick(event: MouseEvent) {
+      if (element) {
+        const clickedInside = element.contains(event.target as Node);
+        setIsDropdownVisible(clickedInside);
+      }
+    }
+
+    document.addEventListener("mouseup", handleClick);
+
+    return () => {
+      document.removeEventListener("mouseup", handleClick);
+    };
+  }, [element, setIsDropdownVisible]);
 }
 
 export function GithubListing() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [shouldFetch, setShouldFetch] = useState(false);
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
 
   const {
@@ -238,12 +254,15 @@ export function GithubListing() {
     if (win) win.focus();
   }, [focusedIndex, reposAndUsers]);
 
-  useKeyboardListener({
-    isInputFocused,
+  useKeyboardListener(
+    isDropdownVisible,
     setFocusedIndex,
     openLink,
-    maxItems: reposAndUsers.length,
-  });
+    reposAndUsers.length,
+  );
+
+  const inputDropdownRef = useRef<HTMLDivElement>(null);
+  useUnclickMouseListener(inputDropdownRef?.current, setIsDropdownVisible);
 
   const isResultsVisible = useMemo(
     () =>
@@ -256,18 +275,18 @@ export function GithubListing() {
   );
 
   const onFocus = useCallback(() => {
-    setIsInputFocused(true);
+    setIsDropdownVisible(true);
   }, []);
 
   const onBlur = useCallback(() => {
-    setIsInputFocused(false);
+    //setIsInputFocused(false);
   }, []);
 
   return (
     <div className="py-6 px-5 bg-white rounded-md flex flex-col border-[#efebf5] border w-full">
       <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
 
-      <div className="relative">
+      <div ref={inputDropdownRef} className="relative">
         <input
           ref={inputRef}
           type="text"
@@ -278,7 +297,7 @@ export function GithubListing() {
           onBlur={onBlur}
         />
 
-        {isInputFocused && (
+        {isDropdownVisible && (
           <div className="absolute overflow-auto bg-white border-[#efebf5] border mt-1 w-full min-h-60 rounded-lg h-full">
             <div className="flex h-full p-2 flex-col">
               {isResultsVisible && (
