@@ -99,7 +99,7 @@ export function GithubListing() {
     queryKey: ["repos", inputRef?.current?.value],
     queryFn: async () => {
       const response = await fetch(
-        `https://api.github.com/search/repositories?q=${inputRef?.current?.value}`,
+        `https://api.github.com/search/repositories?per_page=50&q=${inputRef?.current?.value}`,
       );
       const json = await response.json();
 
@@ -121,7 +121,7 @@ export function GithubListing() {
     queryKey: ["users", inputRef?.current?.value],
     queryFn: async () => {
       const response = await fetch(
-        `https://api.github.com/search/users?q=${inputRef?.current?.value}`,
+        `https://api.github.com/search/users?per_page=50&q=${inputRef?.current?.value}`,
       );
       return await response.json();
     },
