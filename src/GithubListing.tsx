@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Spinner from "./Spinner";
 
@@ -123,8 +123,42 @@ export function GithubListing() {
     setShouldFetch(textLen >= MIN_CHAR_SEARCH);
   }, []);
 
+  const isNoResultsRepoVisible = useMemo(
+    () => !isFetchingRepos && !errorRepos && repositories?.total_count === 0,
+    [isFetchingRepos, errorRepos, repositories],
+  );
+
+  const isNoResultsUserVisible = useMemo(
+    () => !isFetchingUsers && !errorUsers && users?.total_count === 0,
+    [isFetchingUsers, errorUsers, users],
+  );
+
+  const isReposSpinnerVisible = useMemo(
+    () => isFetchingRepos && !errorRepos,
+    [isFetchingRepos, errorRepos],
+  );
+
+  const isRepoResultsVisible = useMemo(
+    () =>
+      !isFetchingRepos &&
+      !errorRepos &&
+      repositories &&
+      repositories?.total_count > 0,
+    [isFetchingRepos, errorRepos, repositories],
+  );
+
+  const showUserResults = useMemo(
+    () => !isFetchingUsers && !errorUsers && users && users?.total_count > 0,
+    [isFetchingUsers, errorUsers, users],
+  );
+
+  const isUsersSpinnerVisible = useMemo(
+    () => isFetchingUsers && !errorUsers,
+    [isFetchingUsers, errorUsers],
+  );
+
   return (
-    <div className="py-6 px-6 bg-white rounded-md gap-3 flex flex-col">
+    <div className="py-6 px-6 bg-white rounded-md flex flex-col">
       <p className="text-gray-900">Search for a repository or a user.</p>
       <input
         ref={inputRef}
@@ -134,41 +168,42 @@ export function GithubListing() {
         placeholder="Linux"
         onChange={(e) => onChange(e.target.value.length)}
       />
-      {isFetchingRepos && !errorRepos && (
+
+      <p className="text-xl text-center mt-6">Repositories</p>
+      {isRepoResultsVisible && (
+        <div className="grid grid-cols-[1fr] md:grid-cols-[1fr_auto_auto_auto_auto] gap-y-6">
+          {repositories?.items.map((repo) => (
+            <RepositoryEntry key={repo.id} repository={repo}></RepositoryEntry>
+          ))}
+        </div>
+      )}
+      {isNoResultsRepoVisible && (
+        <p className="text-md text-center text-gray-500">No results.</p>
+      )}
+      {isReposSpinnerVisible && (
         <div className="flex justify-center mt-3">
           <Spinner />
         </div>
       )}
-      {!isFetchingRepos && !errorRepos && repositories?.total_count === 0 && (
-        <p className="text-xl text-center mt-3">No results.</p>
+      {errorRepos && <p className="text-red-500">{errorRepos.message}</p>}
+
+      <p className="text-xl text-center mt-6">Users</p>
+      {showUserResults && (
+        <div className="flex flex-col gap-6">
+          {users?.items.map((user) => (
+            <UserEntry key={user.id} user={user}></UserEntry>
+          ))}
+        </div>
       )}
-      {!isFetchingRepos &&
-        !errorRepos &&
-        repositories &&
-        repositories?.total_count > 0 && (
-          <>
-            <p className="text-xl text-center">Repositories</p>
-            <div className="grid grid-cols-[1fr] md:grid-cols-[1fr_auto_auto_auto_auto] gap-y-6">
-              {repositories?.items.map((repo) => (
-                <RepositoryEntry
-                  key={repo.id}
-                  repository={repo}
-                ></RepositoryEntry>
-              ))}
-            </div>
-          </>
-        )}
-      {!isFetchingUsers && !errorUsers && users && users?.total_count > 0 && (
-        <>
-          <p className="text-xl text-center">Users</p>
-          <div className="flex flex-col gap-6">
-            {users?.items.map((user) => (
-              <UserEntry key={user.id} user={user}></UserEntry>
-            ))}
-          </div>
-        </>
+      {isNoResultsUserVisible && (
+        <p className="text-md text-center text-gray-500">No results.</p>
       )}
-      {errorRepos && <p className="mt-3 text-red-500">{errorRepos.message}</p>}
+      {isUsersSpinnerVisible && (
+        <div className="flex justify-center mt-3">
+          <Spinner />
+        </div>
+      )}
+      {errorUsers && <p className="text-red-500">{errorUsers.message}</p>}
     </div>
   );
 }
