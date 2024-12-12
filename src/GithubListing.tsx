@@ -42,7 +42,7 @@ function isUser(item: User | Repository): item is User {
 
 function RepositoryEntry({ repository }: { repository: Repository }) {
   return (
-    <div className="flex">
+    <div className="flex hover:bg-slate-50 p-2 rounded-md">
       <div className="flex flex-1 flex-col md:mr-6">
         <a
           href={repository.html_url}
@@ -73,7 +73,7 @@ function RepositoryEntry({ repository }: { repository: Repository }) {
 
 function UserEntry({ user }: { user: User }) {
   return (
-    <div className="flex align-middle gap-3">
+    <div className="flex align-middle gap-3 p-2 rounded-md hover:bg-slate-50">
       <img width={32} height={32} src={user.gravatar_url ?? user.avatar_url} />
       <a
         href={user.html_url}
@@ -170,7 +170,7 @@ export function GithubListing() {
   );
 
   return (
-    <div className="py-6 px-6 bg-white rounded-md flex flex-col border-[#efebf5] border-2">
+    <div className="py-6 px-5 bg-white rounded-md flex flex-col border-[#efebf5] border-2">
       <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
       <input
         ref={inputRef}
