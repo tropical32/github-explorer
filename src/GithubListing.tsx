@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo } from "react";
+import { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Spinner from "./Spinner";
 
@@ -40,16 +40,40 @@ function isUser(item: User | Repository): item is User {
   return (item as User).login !== undefined;
 }
 
+function SearchEntryWrapper({
+  children,
+  isFocused,
+}: {
+  children: React.ReactNode;
+  isFocused: boolean;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (isFocused) {
+      ref.current?.scrollIntoView({
+        behavior: 'auto',
+        block: 'center',
+        inline: 'center'
+      });
+    } 
+  }, [isFocused]);
+
+  return (
+    <div
+      ref={ref}
+      className={isFocused ? "bg-slate-50" : ""}
+    >
+      {children}
+    </div>
+  );
+}
+
 function RepositoryEntry({ repository }: { repository: Repository }) {
   return (
-    <div className="flex hover:bg-slate-50 p-2 rounded-md">
+    <div className={`flex p-2 rounded-md`}>
       <div className="flex flex-1 flex-col md:mr-6">
-        <a
-          href={repository.html_url}
-          className="text-blue-500 hover:underline w-60"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <a href={repository.html_url} target="_blank" rel="noopener noreferrer">
           {repository.name}
         </a>
         <span
@@ -73,11 +97,11 @@ function RepositoryEntry({ repository }: { repository: Repository }) {
 
 function UserEntry({ user }: { user: User }) {
   return (
-    <div className="flex align-middle gap-3 p-2 rounded-md hover:bg-slate-50">
+    <div className={`flex align-middle gap-3 p-2 rounded-md`}>
       <img width={32} height={32} src={user.gravatar_url ?? user.avatar_url} />
       <a
         href={user.html_url}
-        className="text-blue-500 hover:underline w-60"
+        className="text-blue-500 hover:underline w-60 text-left"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -87,10 +111,43 @@ function UserEntry({ user }: { user: User }) {
   );
 }
 
+function useKeyboardListener({
+  isInputFocused,
+  setFocusedIndex,
+  openLink
+}: {
+  isInputFocused: boolean;
+  setFocusedIndex: React.Dispatch<React.SetStateAction<number>>;
+  openLink: () => void;}) {
+  useEffect(() => {
+    function keyDownHandler(e: globalThis.KeyboardEvent) {
+      if (isInputFocused) {
+        console.log(e.key);
+        if (e.key === "ArrowUp") {
+          setFocusedIndex((index) => index - 1); // TODO: handle min/max
+        } else if (e.key == "ArrowDown") {
+          setFocusedIndex((index) => index + 1);
+        } else if (e.key === "Enter") {
+          openLink();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", keyDownHandler);
+
+    return () => {
+      document.removeEventListener("keydown", keyDownHandler);
+    };
+  }, [isInputFocused, setFocusedIndex, openLink]);
+}
+
 export function GithubListing() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+
+
 
   const {
     error: errorRepos,
@@ -177,6 +234,15 @@ export function GithubListing() {
     return combined;
   }, [repositories, users]);
 
+  const openLink = useCallback(() => {
+    const url = reposAndUsers?.at(focusedIndex)?.html_url;
+
+      const win = window.open(url, '_blank');
+      if (win) win.focus();
+  }, [focusedIndex,reposAndUsers]);
+
+  useKeyboardListener({ isInputFocused, setFocusedIndex, openLink });
+
   const isResultsVisible = useMemo(
     () =>
       !isFetchingRepos &&
@@ -210,18 +276,22 @@ export function GithubListing() {
           onBlur={onBlur}
         />
 
-        {isInputFocused && (
+        {true && (
           <div className="absolute overflow-auto bg-white border-[#efebf5] border mt-1 w-full min-h-60 rounded-lg h-full">
             <div className="flex h-full p-2 flex-col">
               {isResultsVisible && (
                 <div className="flex h-full w-full gap-6 flex-col">
-                  {reposAndUsers?.map((entry) =>
-                    isUser(entry) ? (
-                      <UserEntry key={entry.id} user={entry} />
-                    ) : (
-                      <RepositoryEntry key={entry.id} repository={entry} />
-                    ),
-                  )}
+                  {reposAndUsers?.map((entry, idx) => (
+                    <SearchEntryWrapper
+                      isFocused={focusedIndex === idx}
+                    >
+                      {isUser(entry) ? (
+                        <UserEntry key={entry.id} user={entry} />
+                      ) : (
+                        <RepositoryEntry key={entry.id} repository={entry} />
+                      )}
+                    </SearchEntryWrapper>
+                  ))}
                 </div>
               )}
               {isNoResultsVisible && (
