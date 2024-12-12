@@ -90,6 +90,7 @@ function UserEntry({ user }: { user: User }) {
 export function GithubListing() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [shouldFetch, setShouldFetch] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const {
     error: errorRepos,
@@ -182,47 +183,68 @@ export function GithubListing() {
       !isFetchingUsers &&
       !errorRepos &&
       !errorUsers &&
-      reposAndUsers.length >= 0,
+      reposAndUsers.length > 0,
     [isFetchingRepos, errorRepos, isFetchingUsers, errorUsers, reposAndUsers],
   );
 
-  return (
-    <div className="py-6 px-5 bg-white rounded-md flex flex-col border-[#efebf5] border-2">
-      <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
-      <input
-        ref={inputRef}
-        type="text"
-        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        placeholder="Linux"
-        onChange={(e) => onChange(e.target.value.length)}
-      />
+  const onFocus = useCallback(() => {
+    setIsInputFocused(true);
+  }, []);
 
-      <p className="text-xl text-center mt-6">Results</p>
-      {isResultsVisible && (
-        <div className="flex gap-6 flex-col">
-          {reposAndUsers?.map((entry) =>
-            isUser(entry) ? (
-              <UserEntry key={entry.id} user={entry} />
-            ) : (
-              <RepositoryEntry key={entry.id} repository={entry} />
-            ),
-          )}
-        </div>
-      )}
-      {isNoResultsVisible && (
-        <p className="text-md text-center text-gray-500">No results.</p>
-      )}
-      {isSpinnerVisible && (
-        <div className="flex justify-center mt-3">
-          <Spinner />
-        </div>
-      )}
-      {isErrorVisible && (
-        <p className="text-red-500 max-w-60">
-          {(errorRepos && errorRepos.message) ||
-            (errorUsers && errorUsers.message)}
-        </p>
-      )}
+  const onBlur = useCallback(() => {
+    setIsInputFocused(false);
+  }, []);
+
+  return (
+    <div className="py-6 px-5 bg-white rounded-md flex flex-col border-[#efebf5] border w-full">
+      <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
+
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          className="bg-gray-50 border-[#efebf5] border text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          placeholder="Linux"
+          onChange={(e) => onChange(e.target.value.length)}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+
+        {isInputFocused && (
+          <div className="absolute overflow-auto bg-white border-[#efebf5] border mt-1 w-full min-h-60 rounded-lg h-full">
+            <div className="flex h-full p-2 flex-col">
+              {isResultsVisible && (
+                <div className="flex h-full w-full gap-6 flex-col">
+                  {reposAndUsers?.map((entry) =>
+                    isUser(entry) ? (
+                      <UserEntry key={entry.id} user={entry} />
+                    ) : (
+                      <RepositoryEntry key={entry.id} repository={entry} />
+                    ),
+                  )}
+                </div>
+              )}
+              {isNoResultsVisible && (
+                <div className="flex justify-center items-center h-full">
+                  <p className="text-md text-center text-gray-500">
+                    No results.
+                  </p>
+                </div>
+              )}
+              {isSpinnerVisible && (
+                <div className="flex justify-center mt-3 h-full items-center">
+                  <Spinner />
+                </div>
+              )}
+              {isErrorVisible && (
+                <p className="text-red-500 max-w-60">
+                  {errorRepos?.message ?? errorUsers?.message}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
