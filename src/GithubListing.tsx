@@ -124,12 +124,12 @@ export function GithubListing() {
   }, []);
 
   const isNoResultsRepoVisible = useMemo(
-    () => !isFetchingRepos && !errorRepos && repositories?.total_count === 0,
+    () => !isFetchingRepos && !errorRepos && !repositories?.items?.length,
     [isFetchingRepos, errorRepos, repositories],
   );
 
   const isNoResultsUserVisible = useMemo(
-    () => !isFetchingUsers && !errorUsers && users?.total_count === 0,
+    () => !isFetchingUsers && !errorUsers && !users?.items?.length,
     [isFetchingUsers, errorUsers, users],
   );
 
@@ -159,7 +159,7 @@ export function GithubListing() {
 
   return (
     <div className="py-6 px-6 bg-white rounded-md flex flex-col">
-      <p className="text-gray-900">Search for a repository or a user.</p>
+      <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
       <input
         ref={inputRef}
         type="text"
