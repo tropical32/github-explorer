@@ -278,7 +278,7 @@ export function GithubListing() {
           onBlur={onBlur}
         />
 
-        {true && (
+        {isInputFocused && (
           <div className="absolute overflow-auto bg-white border-[#efebf5] border mt-1 w-full min-h-60 rounded-lg h-full">
             <div className="flex h-full p-2 flex-col">
               {isResultsVisible && (
