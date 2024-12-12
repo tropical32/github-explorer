@@ -52,18 +52,15 @@ function SearchEntryWrapper({
   useEffect(() => {
     if (isFocused) {
       ref.current?.scrollIntoView({
-        behavior: 'auto',
-        block: 'center',
-        inline: 'center'
+        behavior: "auto",
+        block: "center",
+        inline: "center",
       });
-    } 
+    }
   }, [isFocused]);
 
   return (
-    <div
-      ref={ref}
-      className={isFocused ? "bg-slate-50" : ""}
-    >
+    <div ref={ref} className={isFocused ? "bg-slate-50" : ""}>
       {children}
     </div>
   );
@@ -114,19 +111,21 @@ function UserEntry({ user }: { user: User }) {
 function useKeyboardListener({
   isInputFocused,
   setFocusedIndex,
-  openLink
+  openLink,
+  maxItems,
 }: {
   isInputFocused: boolean;
   setFocusedIndex: React.Dispatch<React.SetStateAction<number>>;
-  openLink: () => void;}) {
+  openLink: () => void;
+  maxItems: number;
+}) {
   useEffect(() => {
     function keyDownHandler(e: globalThis.KeyboardEvent) {
       if (isInputFocused) {
-        console.log(e.key);
         if (e.key === "ArrowUp") {
-          setFocusedIndex((index) => index - 1); // TODO: handle min/max
+          setFocusedIndex((index) => (index === 0 ? 0 : index - 1));
         } else if (e.key == "ArrowDown") {
-          setFocusedIndex((index) => index + 1);
+          setFocusedIndex((index) => (index === maxItems ? index : index + 1));
         } else if (e.key === "Enter") {
           openLink();
         }
@@ -138,7 +137,7 @@ function useKeyboardListener({
     return () => {
       document.removeEventListener("keydown", keyDownHandler);
     };
-  }, [isInputFocused, setFocusedIndex, openLink]);
+  }, [isInputFocused, setFocusedIndex, openLink, maxItems]);
 }
 
 export function GithubListing() {
@@ -146,8 +145,6 @@ export function GithubListing() {
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
-
-
 
   const {
     error: errorRepos,
@@ -237,11 +234,16 @@ export function GithubListing() {
   const openLink = useCallback(() => {
     const url = reposAndUsers?.at(focusedIndex)?.html_url;
 
-      const win = window.open(url, '_blank');
-      if (win) win.focus();
-  }, [focusedIndex,reposAndUsers]);
+    const win = window.open(url, "_blank");
+    if (win) win.focus();
+  }, [focusedIndex, reposAndUsers]);
 
-  useKeyboardListener({ isInputFocused, setFocusedIndex, openLink });
+  useKeyboardListener({
+    isInputFocused,
+    setFocusedIndex,
+    openLink,
+    maxItems: reposAndUsers.length,
+  });
 
   const isResultsVisible = useMemo(
     () =>
@@ -282,9 +284,7 @@ export function GithubListing() {
               {isResultsVisible && (
                 <div className="flex h-full w-full gap-6 flex-col">
                   {reposAndUsers?.map((entry, idx) => (
-                    <SearchEntryWrapper
-                      isFocused={focusedIndex === idx}
-                    >
+                    <SearchEntryWrapper isFocused={focusedIndex === idx}>
                       {isUser(entry) ? (
                         <UserEntry key={entry.id} user={entry} />
                       ) : (
