@@ -132,7 +132,7 @@ export function GithubListing() {
     [isFetchingRepos, errorRepos, repositories],
   );
 
-  const isReposSpinnerVisible = useMemo(
+  const isSpinnerVisible = useMemo(
     () => isFetchingRepos && !errorRepos,
     [isFetchingRepos, errorRepos],
   );
@@ -198,12 +198,13 @@ export function GithubListing() {
       {isNoResultsVisible && (
         <p className="text-md text-center text-gray-500">No results.</p>
       )}
-      {isReposSpinnerVisible && (
+      {isSpinnerVisible && (
         <div className="flex justify-center mt-3">
           <Spinner />
         </div>
       )}
       {errorRepos && <p className="text-red-500">{errorRepos.message}</p>}
+      {errorUsers && <p className="text-red-500">{errorUsers.message}</p>}
     </div>
   );
 }
