@@ -169,8 +169,6 @@ export function GithubListing() {
     [isFetchingRepos, errorRepos, isFetchingUsers, errorUsers, reposAndUsers],
   );
 
-  console.log(reposAndUsers);
-
   return (
     <div className="py-6 px-6 bg-white rounded-md flex flex-col border-[#efebf5] border-2">
       <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
