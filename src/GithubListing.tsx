@@ -50,7 +50,7 @@ function RepositoryEntry({ repository }: { repository: Repository }) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {repository.full_name}
+          {repository.name}
         </a>
         <span
           title={repository.description}
@@ -145,10 +145,10 @@ export function GithubListing() {
 
     combined.sort((entryA, entryB) => {
       const entryASortKey = (
-        isUser(entryA) ? entryA.login : entryA.full_name
+        isUser(entryA) ? entryA.login : entryA.name
       ).toLowerCase();
       const entryBSortKey = (
-        isUser(entryB) ? entryB.login : entryB.full_name
+        isUser(entryB) ? entryB.login : entryB.name
       ).toLowerCase();
 
       if (entryASortKey < entryBSortKey) return -1;
