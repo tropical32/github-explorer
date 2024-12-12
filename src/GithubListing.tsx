@@ -70,7 +70,12 @@ function RepositoryEntry({ repository }: { repository: Repository }) {
   return (
     <div className={`flex p-2 rounded-md`}>
       <div className="flex flex-1 flex-col md:mr-6">
-        <a href={repository.html_url} target="_blank" rel="noopener noreferrer">
+        <a
+          href={repository.html_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:underline"
+        >
           {repository.name}
         </a>
         <span
@@ -111,6 +116,7 @@ function UserEntry({ user }: { user: User }) {
 function useKeyboardListener(
   isDropdownVisible: boolean,
   setFocusedIndex: React.Dispatch<React.SetStateAction<number>>,
+  setIsDropdownVisible: (isDropdownVisible: boolean) => void,
   openLink: VoidFunction,
   maxItems: number,
 ) {
@@ -125,6 +131,8 @@ function useKeyboardListener(
         setFocusedIndex((index) => (index === maxItems ? index : index + 1));
       } else if (e.key === "Enter") {
         openLink();
+      } else if (e.key === "Escape") {
+        setIsDropdownVisible(false);
       }
     }
 
@@ -133,7 +141,7 @@ function useKeyboardListener(
     return () => {
       document.removeEventListener("keydown", keyDownHandler);
     };
-  }, [isDropdownVisible, setFocusedIndex, openLink, maxItems]);
+  }, [isDropdownVisible, setFocusedIndex, openLink, maxItems,setIsDropdownVisible]);
 }
 
 function useUnclickMouseListener(
@@ -250,13 +258,16 @@ export function GithubListing() {
   const openLink = useCallback(() => {
     const url = reposAndUsers?.at(focusedIndex)?.html_url;
 
-    const win = window.open(url, "_blank");
-    if (win) win.focus();
+    if (url) {
+      const win = window.open(url, "_blank");
+      if (win) win.focus();
+    }
   }, [focusedIndex, reposAndUsers]);
 
   useKeyboardListener(
     isDropdownVisible,
     setFocusedIndex,
+    setIsDropdownVisible,
     openLink,
     reposAndUsers.length,
   );
@@ -278,9 +289,9 @@ export function GithubListing() {
     setIsDropdownVisible(true);
   }, []);
 
-  const onBlur = useCallback(() => {
-    //setIsInputFocused(false);
-  }, []);
+  useEffect(() => {
+    setFocusedIndex(0);
+  }, [reposAndUsers, isDropdownVisible]);
 
   return (
     <div className="py-6 px-5 bg-white rounded-md flex flex-col border-[#efebf5] border w-full">
@@ -294,7 +305,6 @@ export function GithubListing() {
           placeholder="Linux"
           onChange={(e) => onChange(e.target.value.length)}
           onFocus={onFocus}
-          onBlur={onBlur}
         />
 
         {isDropdownVisible && (
