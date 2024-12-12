@@ -123,7 +123,13 @@ export function GithubListing() {
       const response = await fetch(
         `https://api.github.com/search/users?per_page=50&q=${inputRef?.current?.value}`,
       );
-      return await response.json();
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json.message);
+      }
+
+      return json;
     },
     enabled: shouldFetch,
     staleTime: 1000 * 60 * 5,
@@ -206,11 +212,11 @@ export function GithubListing() {
           <Spinner />
         </div>
       )}
-      {errorRepos && (
-        <p className="text-red-500 max-w-60">{errorRepos.message}</p>
-      )}
-      {errorUsers && (
-        <p className="text-red-500 max-w-60">{errorUsers.message}</p>
+      {(errorRepos || errorUsers) && (
+        <p className="text-red-500 max-w-60">
+          {(errorRepos && errorRepos.message) ||
+            (errorUsers && errorUsers.message)}
+        </p>
       )}
     </div>
   );
