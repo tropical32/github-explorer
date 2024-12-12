@@ -158,7 +158,7 @@ export function GithubListing() {
   );
 
   return (
-    <div className="py-6 px-6 bg-white rounded-md flex flex-col">
+    <div className="py-6 px-6 bg-white rounded-md flex flex-col border-[#efebf5] border-2">
       <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
       <input
         ref={inputRef}
