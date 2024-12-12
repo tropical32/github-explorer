@@ -36,10 +36,14 @@ type User = {
   gravatar_url: string;
 };
 
+function isUser(item: User | Repository): item is User {
+  return (item as User).login !== undefined;
+}
+
 function RepositoryEntry({ repository }: { repository: Repository }) {
   return (
-    <>
-      <div className="flex flex-col md:mr-6">
+    <div className="flex">
+      <div className="flex flex-1 flex-col md:mr-6">
         <a
           href={repository.html_url}
           className="text-blue-500 hover:underline w-60"
@@ -63,7 +67,7 @@ function RepositoryEntry({ repository }: { repository: Repository }) {
         {repository.watchers}
       </span>
       <span className="text-gray-900 ml-1 hidden md:block">⭐</span>
-    </>
+    </div>
   );
 }
 
@@ -123,14 +127,9 @@ export function GithubListing() {
     setShouldFetch(textLen >= MIN_CHAR_SEARCH);
   }, []);
 
-  const isNoResultsRepoVisible = useMemo(
+  const isNoResultsVisible = useMemo(
     () => !isFetchingRepos && !errorRepos && !repositories?.items?.length,
     [isFetchingRepos, errorRepos, repositories],
-  );
-
-  const isNoResultsUserVisible = useMemo(
-    () => !isFetchingUsers && !errorUsers && !users?.items?.length,
-    [isFetchingUsers, errorUsers, users],
   );
 
   const isReposSpinnerVisible = useMemo(
@@ -138,24 +137,39 @@ export function GithubListing() {
     [isFetchingRepos, errorRepos],
   );
 
-  const isRepoResultsVisible = useMemo(
+  const reposAndUsers: (Repository | User)[] = useMemo(() => {
+    const combined: (Repository | User)[] = [
+      ...(Array.isArray(repositories?.items) ? repositories.items : []),
+      ...(Array.isArray(users?.items) ? users.items : []),
+    ];
+
+    combined.sort((entryA, entryB) => {
+      const entryASortKey = (
+        isUser(entryA) ? entryA.login : entryA.full_name
+      ).toLowerCase();
+      const entryBSortKey = (
+        isUser(entryB) ? entryB.login : entryB.full_name
+      ).toLowerCase();
+
+      if (entryASortKey < entryBSortKey) return -1;
+      if (entryASortKey > entryBSortKey) return 1;
+      return 0;
+    });
+
+    return combined;
+  }, [repositories, users]);
+
+  const isResultsVisible = useMemo(
     () =>
       !isFetchingRepos &&
+      !isFetchingUsers &&
       !errorRepos &&
-      repositories &&
-      repositories?.total_count > 0,
-    [isFetchingRepos, errorRepos, repositories],
+      !errorUsers &&
+      reposAndUsers.length >= 0,
+    [isFetchingRepos, errorRepos, isFetchingUsers, errorUsers, reposAndUsers],
   );
 
-  const showUserResults = useMemo(
-    () => !isFetchingUsers && !errorUsers && users && users?.total_count > 0,
-    [isFetchingUsers, errorUsers, users],
-  );
-
-  const isUsersSpinnerVisible = useMemo(
-    () => isFetchingUsers && !errorUsers,
-    [isFetchingUsers, errorUsers],
-  );
+  console.log(reposAndUsers);
 
   return (
     <div className="py-6 px-6 bg-white rounded-md flex flex-col border-[#efebf5] border-2">
@@ -169,15 +183,19 @@ export function GithubListing() {
         onChange={(e) => onChange(e.target.value.length)}
       />
 
-      <p className="text-xl text-center mt-6">Repositories</p>
-      {isRepoResultsVisible && (
-        <div className="grid grid-cols-[1fr] md:grid-cols-[1fr_auto_auto_auto_auto] gap-y-6">
-          {repositories?.items.map((repo) => (
-            <RepositoryEntry key={repo.id} repository={repo}></RepositoryEntry>
-          ))}
+      <p className="text-xl text-center mt-6">Results</p>
+      {isResultsVisible && (
+        <div className="flex gap-6 flex-col">
+          {reposAndUsers?.map((entry) =>
+            isUser(entry) ? (
+              <UserEntry key={entry.id} user={entry} />
+            ) : (
+              <RepositoryEntry key={entry.id} repository={entry} />
+            ),
+          )}
         </div>
       )}
-      {isNoResultsRepoVisible && (
+      {isNoResultsVisible && (
         <p className="text-md text-center text-gray-500">No results.</p>
       )}
       {isReposSpinnerVisible && (
@@ -186,24 +204,6 @@ export function GithubListing() {
         </div>
       )}
       {errorRepos && <p className="text-red-500">{errorRepos.message}</p>}
-
-      <p className="text-xl text-center mt-6">Users</p>
-      {showUserResults && (
-        <div className="flex flex-col gap-6">
-          {users?.items.map((user) => (
-            <UserEntry key={user.id} user={user}></UserEntry>
-          ))}
-        </div>
-      )}
-      {isNoResultsUserVisible && (
-        <p className="text-md text-center text-gray-500">No results.</p>
-      )}
-      {isUsersSpinnerVisible && (
-        <div className="flex justify-center mt-3">
-          <Spinner />
-        </div>
-      )}
-      {errorUsers && <p className="text-red-500">{errorUsers.message}</p>}
     </div>
   );
 }
