@@ -141,7 +141,13 @@ function useKeyboardListener(
     return () => {
       document.removeEventListener("keydown", keyDownHandler);
     };
-  }, [isDropdownVisible, setFocusedIndex, openLink, maxItems,setIsDropdownVisible]);
+  }, [
+    isDropdownVisible,
+    setFocusedIndex,
+    openLink,
+    maxItems,
+    setIsDropdownVisible,
+  ]);
 }
 
 function useUnclickMouseListener(
@@ -272,8 +278,8 @@ export function GithubListing() {
     reposAndUsers.length,
   );
 
-  const inputDropdownRef = useRef<HTMLDivElement>(null);
-  useUnclickMouseListener(inputDropdownRef?.current, setIsDropdownVisible);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useUnclickMouseListener(dropdownRef?.current, setIsDropdownVisible);
 
   const isResultsVisible = useMemo(
     () =>
@@ -297,7 +303,7 @@ export function GithubListing() {
     <div className="py-6 px-5 bg-white rounded-md flex flex-col border-[#efebf5] border w-full">
       <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
 
-      <div ref={inputDropdownRef} className="relative">
+      <div ref={dropdownRef} className="relative">
         <input
           ref={inputRef}
           type="text"
@@ -336,9 +342,11 @@ export function GithubListing() {
                 </div>
               )}
               {isErrorVisible && (
-                <p className="text-red-500 max-w-60">
-                  {errorRepos?.message ?? errorUsers?.message}
-                </p>
+                <div className="flex justify-center items-center h-full">
+                  <p className="text-red-500 text-center text-md">
+                    {errorRepos?.message ?? errorUsers?.message}
+                  </p>
+                </div>
               )}
             </div>
           </div>
