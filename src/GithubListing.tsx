@@ -1,4 +1,10 @@
-import { useRef, useState, useCallback, useMemo, useEffect } from "react";
+import {
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
 import { useQuery } from "@tanstack/react-query";
 import Spinner from "./Spinner";
 
@@ -112,52 +118,6 @@ function UserEntry({ user }: { user: User }) {
       </a>
     </div>
   );
-}
-
-function useKeyboardListener(
-  isDropdownVisible: boolean,
-  setFocusedIndex: React.Dispatch<React.SetStateAction<number>>,
-  setIsDropdownVisible: (isDropdownVisible: boolean) => void,
-  openLink: VoidFunction,
-  maxItems: number,
-) {
-  useEffect(() => {
-    function keyDownHandler(e: globalThis.KeyboardEvent) {
-      if (!isDropdownVisible) return;
-
-      switch (e.key) {
-        case "ArrowUp":
-          e.preventDefault();
-          setFocusedIndex((index) => (index <= 0 ? index : index - 1));
-          break;
-        case "ArrowDown":
-          e.preventDefault();
-          setFocusedIndex((index) => (index >= maxItems ? index : index + 1));
-          break;
-        case "Enter":
-          openLink();
-          break;
-        case "Escape":
-          setIsDropdownVisible(false);
-          break;
-        default:
-          return;
-      }
-    }
-
-    // TODO: can I apply it to the input directly?
-    document.addEventListener("keydown", keyDownHandler);
-
-    return () => {
-      document.removeEventListener("keydown", keyDownHandler);
-    };
-  }, [
-    isDropdownVisible,
-    setFocusedIndex,
-    openLink,
-    maxItems,
-    setIsDropdownVisible,
-  ]);
 }
 
 function useUnclickMouseListener(
@@ -280,14 +240,6 @@ export function GithubListing() {
     }
   }, [focusedIndex, reposAndUsers]);
 
-  useKeyboardListener(
-    isDropdownVisible,
-    setFocusedIndex,
-    setIsDropdownVisible,
-    openLink,
-    reposAndUsers.length,
-  );
-
   const dropdownRef = useRef<HTMLDivElement>(null);
   useUnclickMouseListener(dropdownRef?.current, setIsDropdownVisible);
 
@@ -309,12 +261,42 @@ export function GithubListing() {
     setFocusedIndex(-1);
   }, [reposAndUsers, isDropdownVisible]);
 
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!isDropdownVisible) return;
+
+      switch (e.key) {
+        case "ArrowUp":
+          e.preventDefault();
+          setFocusedIndex((index) => (index <= 0 ? index : index - 1));
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          setFocusedIndex((index) =>
+            index >= reposAndUsers.length ? index : index + 1,
+          );
+          break;
+        case "Enter":
+          openLink();
+          break;
+        case "Escape":
+          inputRef?.current?.blur();
+          setIsDropdownVisible(false);
+          break;
+        default:
+          return;
+      }
+    },
+    [isDropdownVisible, reposAndUsers, openLink],
+  );
+
   return (
     <div className="py-6 px-5 bg-white rounded-md flex flex-col border-[#efebf5] border w-full">
       <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
 
       <div ref={dropdownRef} className="relative">
         <input
+          onKeyDown={onKeyDown}
           data-testid="search-input"
           ref={inputRef}
           type="text"
