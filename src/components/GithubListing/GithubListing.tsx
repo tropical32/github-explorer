@@ -88,9 +88,18 @@ export function GithubListing() {
     setSearchQuery(text);
   }, []);
 
+  const isQueryTooShortVisible = useMemo(
+    () => (debouncedSearchQuery || "").length < MIN_CHAR_SEARCH,
+    [debouncedSearchQuery],
+  );
+
   const isNoResultsVisible = useMemo(
-    () => !isFetchingRepos && !errorRepos && !repositories?.items?.length,
-    [isFetchingRepos, errorRepos, repositories],
+    () =>
+      !isQueryTooShortVisible &&
+      !isFetchingRepos &&
+      !errorRepos &&
+      !repositories?.items?.length,
+    [isQueryTooShortVisible, isFetchingRepos, errorRepos, repositories],
   );
 
   const isSpinnerVisible = useMemo(
@@ -210,6 +219,7 @@ export function GithubListing() {
             isErrorVisible={isErrorVisible}
             errorRepos={errorRepos}
             errorUsers={errorUsers}
+            isQueryTooShortVisible={isQueryTooShortVisible}
           />
         )}
       </div>

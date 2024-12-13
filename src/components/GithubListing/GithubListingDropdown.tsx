@@ -14,6 +14,7 @@ type DropdownProps = {
   isErrorVisible: boolean;
   errorRepos: Error | null;
   errorUsers: Error | null;
+  isQueryTooShortVisible: boolean;
 };
 
 export function Dropdown({
@@ -25,6 +26,7 @@ export function Dropdown({
   isErrorVisible,
   errorRepos,
   errorUsers,
+  isQueryTooShortVisible,
 }: DropdownProps) {
   return (
     <div
@@ -51,6 +53,16 @@ export function Dropdown({
             className="flex justify-center items-center h-full"
           >
             <p className="text-md text-center text-gray-500">No results.</p>
+          </div>
+        )}
+        {isQueryTooShortVisible && (
+          <div
+            data-testid="no-results"
+            className="flex justify-center items-center h-full"
+          >
+            <p className="text-md text-center text-gray-500">
+              Provide at least 3 letters to initiate the search.
+            </p>
           </div>
         )}
         {isSpinnerVisible && (
