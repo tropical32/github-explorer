@@ -6,7 +6,7 @@ export function UserEntry({ user }: { user: User }) {
       <img width={32} height={32} src={user.gravatar_url ?? user.avatar_url} />
       <a
         href={user.html_url}
-        className="text-blue-500 hover:underline w-60 text-left"
+        className="text-blue-500 hover:underline text-left"
         target="_blank"
         rel="noopener noreferrer"
       >
