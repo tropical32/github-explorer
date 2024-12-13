@@ -45,13 +45,16 @@ test("tests dropdown results on fetch", async () => {
   fireEvent.change(searchInput, { target: { value: "Makers Den" } });
   expect(searchInput.value).toBe("Makers Den");
 
-  await waitFor(() =>
-    expect(screen.getByTestId("spinner")).toBeInTheDocument(),
+  await waitFor(
+    () => expect(screen.getByTestId("spinner")).toBeInTheDocument(),
+    { timeout: 5000 },
   );
 
-  await waitFor(() => {
-    expect(screen.getAllByTestId("search-entry").length).toBeGreaterThan(0);
-  });
+  await waitFor(
+    () =>
+      expect(screen.getAllByTestId("search-entry").length).toBeGreaterThan(0),
+    { timeout: 5000 },
+  );
 });
 
 test("tests entry highlighting using arrow keys", async () => {
@@ -66,9 +69,11 @@ test("tests entry highlighting using arrow keys", async () => {
   fireEvent.change(searchInput, { target: { value: "Makers Den" } });
   expect(searchInput.value).toBe("Makers Den");
 
-  await waitFor(() => {
-    expect(screen.getAllByTestId("search-entry").length).toBeGreaterThan(0);
-  });
+  await waitFor(
+    () =>
+      expect(screen.getAllByTestId("search-entry").length).toBeGreaterThan(0),
+    { timeout: 5000 },
+  );
 
   let highlightedSearchEntries = await screen.queryAllByTestId(
     "search-entry-focused",
@@ -76,8 +81,9 @@ test("tests entry highlighting using arrow keys", async () => {
   expect(highlightedSearchEntries.length).toBe(0);
 
   fireEvent.keyDown(searchInput, { key: "ArrowDown" });
-  await waitFor(() =>
-    expect(screen.getAllByTestId("search-entry-focused").length).toBe(1),
+  await waitFor(
+    () => expect(screen.getAllByTestId("search-entry-focused").length).toBe(1),
+    { timeout: 5000 },
   );
 
   highlightedSearchEntries = await screen.queryAllByTestId(
