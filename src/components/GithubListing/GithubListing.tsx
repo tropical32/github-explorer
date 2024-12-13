@@ -60,8 +60,6 @@ export function GithubListing() {
     staleTime: 1000 * 60 * 5,
   });
 
-  console.log(debouncedSearchQuery);
-
   const {
     error: errorUsers,
     data: users,
