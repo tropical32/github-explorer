@@ -24,7 +24,7 @@ export function SearchEntry({
       data-testid={isFocused ? "search-entry-focused" : "search-entry"}
       ref={ref}
       role="option"
-      className={isFocused ? "bg-slate-50" : ""}
+      className={isFocused ? "bg-slate-50" : "hover:bg-slate-50"}
       aria-selected={isFocused}
     >
       {children}
