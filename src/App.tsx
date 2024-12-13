@@ -1,4 +1,4 @@
-import GithubListing from "./GithubListing";
+import GithubListing from "./components/GithubListing/GithubListing";
 
 function App() {
   return (

@@ -1,124 +1,10 @@
-import {
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-} from "react";
+import { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Spinner from "./Spinner";
+import { Repository, RepositoryResult, User, UserResult } from "../../types";
+import { isUser } from "../../types/utils";
+import Dropdown from "./GithubListingDropdown";
 
 const MIN_CHAR_SEARCH = 3;
-
-type RepositoryResult = {
-  incomlete_results: boolean;
-  total_count: number;
-  items: Repository[];
-};
-
-type Repository = {
-  id: number;
-  html_url: string;
-  forks_count: number;
-  full_name: string;
-  name: string;
-  language: string;
-  stargazers_count: number;
-  watchers: number;
-  description: string;
-};
-
-type UserResult = {
-  incomplete_results: boolean;
-  total_count: number;
-  items: User[];
-};
-
-type User = {
-  id: number;
-  login: string;
-  html_url: string;
-  avatar_url: string;
-  gravatar_url: string;
-};
-
-function isUser(item: User | Repository): item is User {
-  return (item as User).login !== undefined;
-}
-
-function SearchEntryWrapper({
-  children,
-  isFocused,
-}: {
-  children: React.ReactNode;
-  isFocused: boolean;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (isFocused) {
-      ref.current?.scrollIntoView({
-        behavior: "auto",
-        block: "center",
-        inline: "center",
-      });
-    }
-  }, [isFocused]);
-
-  return (
-    <div
-      data-testid={isFocused ? "search-entry-focused" : "search-entry"}
-      ref={ref}
-      className={isFocused ? "bg-slate-50" : ""}
-    >
-      {children}
-    </div>
-  );
-}
-
-function RepositoryEntry({ repository }: { repository: Repository }) {
-  return (
-    <div className={`flex p-2 rounded-md`}>
-      <div className="flex flex-1 flex-col md:mr-6">
-        <a
-          href={repository.html_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
-        >
-          {repository.name}
-        </a>
-        <span title={repository.description} className="text-gray-500">
-          {repository.description}
-        </span>
-      </div>
-      <span className="text-gray-900 text-right hidden md:block">
-        {repository.stargazers_count}
-      </span>
-      <span className="text-gray-900 ml-1 hidden md:block">👀</span>
-      <span className="text-gray-900 text-right ml-6 hidden md:block">
-        {repository.watchers}
-      </span>
-      <span className="text-gray-900 ml-1 hidden md:block">⭐</span>
-    </div>
-  );
-}
-
-function UserEntry({ user }: { user: User }) {
-  return (
-    <div className="flex align-middle gap-3 p-2 rounded-md">
-      <img width={32} height={32} src={user.gravatar_url ?? user.avatar_url} />
-      <a
-        href={user.html_url}
-        className="text-blue-500 hover:underline w-60 text-left"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {user.login}
-      </a>
-    </div>
-  );
-}
 
 function useUnclickMouseListener(
   element: HTMLDivElement | null,
@@ -205,7 +91,7 @@ export function GithubListing() {
   );
 
   const isErrorVisible = useMemo(
-    () => (errorRepos || errorUsers) && !isFetchingRepos && !isFetchingUsers,
+    () => !!(errorRepos || errorUsers) && !isFetchingRepos && !isFetchingUsers,
     [errorRepos, errorUsers, isFetchingRepos, isFetchingUsers],
   );
 
@@ -307,51 +193,16 @@ export function GithubListing() {
         />
 
         {isDropdownVisible && (
-          <div
-            data-testid="dropdown"
-            className="absolute overflow-y-auto overflow-x-hidden bg-white border-[#efebf5] border mt-1 w-full rounded-lg h-96"
-          >
-            <div className="flex h-full p-2 flex-col">
-              {isResultsVisible && (
-                <div className="flex h-full w-full gap-6 flex-col">
-                  {reposAndUsers?.map((entry, idx) => (
-                    <SearchEntryWrapper
-                      key={entry.id}
-                      isFocused={focusedIndex === idx}
-                    >
-                      {isUser(entry) ? (
-                        <UserEntry user={entry} />
-                      ) : (
-                        <RepositoryEntry repository={entry} />
-                      )}
-                    </SearchEntryWrapper>
-                  ))}
-                </div>
-              )}
-              {isNoResultsVisible && (
-                <div
-                  data-testid="no-results"
-                  className="flex justify-center items-center h-full"
-                >
-                  <p className="text-md text-center text-gray-500">
-                    No results.
-                  </p>
-                </div>
-              )}
-              {isSpinnerVisible && (
-                <div className="flex justify-center mt-3 h-full items-center">
-                  <Spinner />
-                </div>
-              )}
-              {isErrorVisible && (
-                <div className="flex justify-center items-center h-full">
-                  <p className="text-red-500 text-center text-md">
-                    {errorRepos?.message ?? errorUsers?.message}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+          <Dropdown
+            isResultsVisible={isResultsVisible}
+            reposAndUsers={reposAndUsers}
+            focusedIndex={focusedIndex}
+            isNoResultsVisible={isNoResultsVisible}
+            isSpinnerVisible={isSpinnerVisible}
+            isErrorVisible={isErrorVisible}
+            errorRepos={errorRepos}
+            errorUsers={errorUsers}
+          />
         )}
       </div>
     </div>

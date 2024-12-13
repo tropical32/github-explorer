@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "./test-utils";
+import { render, screen, fireEvent, waitFor } from "../../test-utils";
 import "@testing-library/jest-dom";
 import GithubListing from "./GithubListing";
 import jestMock from "jest-mock";
@@ -75,7 +75,7 @@ test("tests entry highlighting using arrow keys", async () => {
   );
   expect(highlightedSearchEntries.length).toBe(0);
 
-  fireEvent.keyDown(document, { key: "ArrowDown" });
+  fireEvent.keyDown(searchInput, { key: "ArrowDown" });
   await waitFor(() =>
     expect(screen.getAllByTestId("search-entry-focused").length).toBe(1),
   );
@@ -87,7 +87,7 @@ test("tests entry highlighting using arrow keys", async () => {
   expect(searchInput.scrollIntoView).toHaveBeenCalledTimes(1);
 
   expect(window.open).toHaveBeenCalledTimes(0);
-  fireEvent.keyDown(document, { key: "Enter" });
+  fireEvent.keyDown(searchInput, { key: "Enter" });
   expect(window.open).toHaveBeenCalledTimes(1);
   expect(window.open).toHaveBeenCalledWith(
     "https://github.com/QuantumFluctuator/3DEngine",
