@@ -125,9 +125,10 @@ function useKeyboardListener(
       if (!isDropdownVisible) return;
 
       if (e.key === "ArrowUp") {
-        // TODO: prevent cursor from jumping to the beginning
+        e.preventDefault();
         setFocusedIndex((index) => (index === 0 ? 0 : index - 1));
       } else if (e.key == "ArrowDown") {
+        e.preventDefault();
         setFocusedIndex((index) => (index === maxItems ? index : index + 1));
       } else if (e.key === "Enter") {
         openLink();
