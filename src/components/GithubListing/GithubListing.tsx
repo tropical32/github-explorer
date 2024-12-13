@@ -91,25 +91,6 @@ export function GithubListing() {
     [debouncedSearchQuery],
   );
 
-  const isNoResultsVisible = useMemo(
-    () =>
-      !isQueryTooShortVisible &&
-      !isFetchingRepos &&
-      !errorRepos &&
-      !repositories?.items?.length,
-    [isQueryTooShortVisible, isFetchingRepos, errorRepos, repositories],
-  );
-
-  const isSpinnerVisible = useMemo(
-    () => isFetchingRepos && !errorRepos,
-    [isFetchingRepos, errorRepos],
-  );
-
-  const isErrorVisible = useMemo(
-    () => !!(errorRepos || errorUsers) && !isFetchingRepos && !isFetchingUsers,
-    [errorRepos, errorUsers, isFetchingRepos, isFetchingUsers],
-  );
-
   const reposAndUsers: (Repository | User)[] = useMemo(() => {
     const combined: (Repository | User)[] = [
       ...(Array.isArray(repositories?.items) ? repositories.items : []),
@@ -131,6 +112,30 @@ export function GithubListing() {
 
     return combined;
   }, [repositories, users]);
+
+  const isNoResultsVisible = useMemo(
+    () =>
+      !isQueryTooShortVisible &&
+      !isFetchingRepos &&
+      !errorRepos &&
+      !reposAndUsers.length,
+    [
+      isQueryTooShortVisible,
+      isFetchingRepos,
+      errorRepos,
+      reposAndUsers?.length,
+    ],
+  );
+
+  const isSpinnerVisible = useMemo(
+    () => isFetchingRepos && !errorRepos,
+    [isFetchingRepos, errorRepos],
+  );
+
+  const isErrorVisible = useMemo(
+    () => !!(errorRepos || errorUsers) && !isFetchingRepos && !isFetchingUsers,
+    [errorRepos, errorUsers, isFetchingRepos, isFetchingUsers],
+  );
 
   const openLink = useCallback(() => {
     const url = focusedIndex >= 0 && reposAndUsers?.at(focusedIndex)?.html_url;
