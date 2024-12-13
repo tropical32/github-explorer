@@ -123,10 +123,10 @@ function useKeyboardListener(
 
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        setFocusedIndex((index) => (index === 0 ? 0 : index - 1));
+        setFocusedIndex((index) => (index <= 0 ? index : index - 1));
       } else if (e.key == "ArrowDown") {
         e.preventDefault();
-        setFocusedIndex((index) => (index === maxItems ? index : index + 1));
+        setFocusedIndex((index) => (index >= maxItems ? index : index + 1));
       } else if (e.key === "Enter") {
         openLink();
       } else if (e.key === "Escape") {
@@ -172,7 +172,7 @@ export function GithubListing() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(0);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
 
   const {
     error: errorRepos,
@@ -260,7 +260,7 @@ export function GithubListing() {
   }, [repositories, users]);
 
   const openLink = useCallback(() => {
-    const url = reposAndUsers?.at(focusedIndex)?.html_url;
+    const url = focusedIndex >= 0 && reposAndUsers?.at(focusedIndex)?.html_url;
 
     if (url) {
       const win = window.open(url, "_blank");
@@ -294,7 +294,7 @@ export function GithubListing() {
   }, []);
 
   useEffect(() => {
-    setFocusedIndex(0);
+    setFocusedIndex(-1);
   }, [reposAndUsers, isDropdownVisible]);
 
   return (
