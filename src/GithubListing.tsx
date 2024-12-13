@@ -78,10 +78,7 @@ function RepositoryEntry({ repository }: { repository: Repository }) {
         >
           {repository.name}
         </a>
-        <span
-          title={repository.description}
-          className="text-gray-500 w-60 overflow-hidden text-ellipsis whitespace-nowrap"
-        >
+        <span title={repository.description} className="text-gray-500">
           {repository.description}
         </span>
       </div>
@@ -99,7 +96,7 @@ function RepositoryEntry({ repository }: { repository: Repository }) {
 
 function UserEntry({ user }: { user: User }) {
   return (
-    <div className={`flex align-middle gap-3 p-2 rounded-md`}>
+    <div className="flex align-middle gap-3 p-2 rounded-md">
       <img width={32} height={32} src={user.gravatar_url ?? user.avatar_url} />
       <a
         href={user.html_url}
@@ -315,7 +312,7 @@ export function GithubListing() {
         />
 
         {isDropdownVisible && (
-          <div className="absolute overflow-auto bg-white border-[#efebf5] border mt-1 w-full min-h-60 rounded-lg h-full">
+          <div className="absolute overflow-y-auto overflow-x-hidden bg-white border-[#efebf5] border mt-1 w-full rounded-lg h-96">
             <div className="flex h-full p-2 flex-col">
               {isResultsVisible && (
                 <div className="flex h-full w-full gap-6 flex-col">
