@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Repository, RepositoryResult, User, UserResult } from "../../types";
 import { isUser } from "../../types/utils";
 import Dropdown from "./GithubListingDropdown";
+import { useDebounce } from "@uidotdev/usehooks";
 
 const MIN_CHAR_SEARCH = 3;
 
@@ -28,7 +29,12 @@ function useUnclickMouseListener(
 
 export function GithubListing() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [shouldFetch, setShouldFetch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const shouldFetch = useMemo(
+    () => (debouncedSearchQuery || "").length >= MIN_CHAR_SEARCH,
+    [debouncedSearchQuery],
+  );
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
 
@@ -37,10 +43,10 @@ export function GithubListing() {
     data: repositories,
     isFetching: isFetchingRepos,
   } = useQuery<RepositoryResult>({
-    queryKey: ["repos", inputRef?.current?.value],
+    queryKey: ["repos", debouncedSearchQuery || ""],
     queryFn: async () => {
       const response = await fetch(
-        `https://api.github.com/search/repositories?per_page=50&q=${inputRef?.current?.value}`,
+        `https://api.github.com/search/repositories?per_page=50&q=${debouncedSearchQuery || ""}`,
       );
       const json = await response.json();
 
@@ -53,16 +59,18 @@ export function GithubListing() {
     enabled: shouldFetch,
     staleTime: 1000 * 60 * 5,
   });
+
+  console.log(debouncedSearchQuery);
 
   const {
     error: errorUsers,
     data: users,
     isFetching: isFetchingUsers,
   } = useQuery<UserResult>({
-    queryKey: ["users", inputRef?.current?.value],
+    queryKey: ["users", debouncedSearchQuery || ""],
     queryFn: async () => {
       const response = await fetch(
-        `https://api.github.com/search/users?per_page=50&q=${inputRef?.current?.value}`,
+        `https://api.github.com/search/users?per_page=50&q=${debouncedSearchQuery || ""}`,
       );
       const json = await response.json();
 
@@ -76,8 +84,8 @@ export function GithubListing() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const onChange = useCallback((textLen: number) => {
-    setShouldFetch(textLen >= MIN_CHAR_SEARCH);
+  const onChange = useCallback((text: string) => {
+    setSearchQuery(text);
   }, []);
 
   const isNoResultsVisible = useMemo(
@@ -188,7 +196,7 @@ export function GithubListing() {
           type="text"
           className="bg-gray-50 border-[#efebf5] border text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           placeholder="Linux"
-          onChange={(e) => onChange(e.target.value.length)}
+          onChange={(e) => onChange(e.target.value)}
           onFocus={onFocus}
         />
 
