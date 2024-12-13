@@ -7,7 +7,7 @@ export function SearchEntry({
   children: React.ReactNode;
   isFocused: boolean;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLLIElement | null>(null);
 
   useEffect(() => {
     if (isFocused) {
@@ -20,13 +20,15 @@ export function SearchEntry({
   }, [isFocused]);
 
   return (
-    <div
+    <li
       data-testid={isFocused ? "search-entry-focused" : "search-entry"}
       ref={ref}
+      role="option"
       className={isFocused ? "bg-slate-50" : ""}
+      aria-selected={isFocused}
     >
       {children}
-    </div>
+    </li>
   );
 }
 

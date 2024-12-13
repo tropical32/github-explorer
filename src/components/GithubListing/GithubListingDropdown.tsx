@@ -33,7 +33,7 @@ export function Dropdown({
     >
       <div className="flex h-full p-2 flex-col">
         {isResultsVisible && (
-          <div className="flex h-full w-full gap-6 flex-col">
+          <ul className="flex h-full w-full gap-6 flex-col" role="listbox">
             {reposAndUsers?.map((entry, idx) => (
               <SearchEntry key={entry.id} isFocused={focusedIndex === idx}>
                 {isUser(entry) ? (
@@ -43,7 +43,7 @@ export function Dropdown({
                 )}
               </SearchEntry>
             ))}
-          </div>
+          </ul>
         )}
         {isNoResultsVisible && (
           <div
