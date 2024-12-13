@@ -333,11 +333,14 @@ export function GithubListing() {
               {isResultsVisible && (
                 <div className="flex h-full w-full gap-6 flex-col">
                   {reposAndUsers?.map((entry, idx) => (
-                    <SearchEntryWrapper isFocused={focusedIndex === idx}>
+                    <SearchEntryWrapper
+                      key={entry.id}
+                      isFocused={focusedIndex === idx}
+                    >
                       {isUser(entry) ? (
-                        <UserEntry key={entry.id} user={entry} />
+                        <UserEntry user={entry} />
                       ) : (
-                        <RepositoryEntry key={entry.id} repository={entry} />
+                        <RepositoryEntry repository={entry} />
                       )}
                     </SearchEntryWrapper>
                   ))}

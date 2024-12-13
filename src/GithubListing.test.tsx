@@ -5,7 +5,15 @@ import jestMock from "jest-mock";
 
 beforeEach(() => {
   Element.prototype.scrollIntoView = jestMock.fn();
-})
+  window.open =
+    jestMock.fn<
+      (
+        url?: string | URL,
+        target?: string,
+        features?: string,
+      ) => WindowProxy | null
+    >();
+});
 
 test("tests the dropdown visibility on focus", async () => {
   render(<GithubListing />);
@@ -77,4 +85,12 @@ test("tests entry highlighting using arrow keys", async () => {
   );
   expect(highlightedSearchEntries.length).toBe(1);
   expect(searchInput.scrollIntoView).toHaveBeenCalledTimes(1);
+
+  expect(window.open).toHaveBeenCalledTimes(0);
+  fireEvent.keyDown(document, { key: "Enter" });
+  expect(window.open).toHaveBeenCalledTimes(1);
+  expect(window.open).toHaveBeenCalledWith(
+    "https://github.com/QuantumFluctuator/3DEngine",
+    "_blank",
+  );
 });
