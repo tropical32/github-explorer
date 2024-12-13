@@ -60,7 +60,11 @@ function SearchEntryWrapper({
   }, [isFocused]);
 
   return (
-    <div ref={ref} className={isFocused ? "bg-slate-50" : ""}>
+    <div
+      data-testid={isFocused ? "search-entry-focused" : "search-entry"}
+      ref={ref}
+      className={isFocused ? "bg-slate-50" : ""}
+    >
       {children}
     </div>
   );
@@ -121,19 +125,27 @@ function useKeyboardListener(
     function keyDownHandler(e: globalThis.KeyboardEvent) {
       if (!isDropdownVisible) return;
 
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setFocusedIndex((index) => (index <= 0 ? index : index - 1));
-      } else if (e.key == "ArrowDown") {
-        e.preventDefault();
-        setFocusedIndex((index) => (index >= maxItems ? index : index + 1));
-      } else if (e.key === "Enter") {
-        openLink();
-      } else if (e.key === "Escape") {
-        setIsDropdownVisible(false);
+      switch (e.key) {
+        case "ArrowUp":
+          e.preventDefault();
+          setFocusedIndex((index) => (index <= 0 ? index : index - 1));
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          setFocusedIndex((index) => (index >= maxItems ? index : index + 1));
+          break;
+        case "Enter":
+          openLink();
+          break;
+        case "Escape":
+          setIsDropdownVisible(false);
+          break;
+        default:
+          return;
       }
     }
 
+    // TODO: can I apply it to the input directly?
     document.addEventListener("keydown", keyDownHandler);
 
     return () => {
@@ -303,6 +315,7 @@ export function GithubListing() {
 
       <div ref={dropdownRef} className="relative">
         <input
+          data-testid="search-input"
           ref={inputRef}
           type="text"
           className="bg-gray-50 border-[#efebf5] border text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -312,7 +325,10 @@ export function GithubListing() {
         />
 
         {isDropdownVisible && (
-          <div className="absolute overflow-y-auto overflow-x-hidden bg-white border-[#efebf5] border mt-1 w-full rounded-lg h-96">
+          <div
+            data-testid="dropdown"
+            className="absolute overflow-y-auto overflow-x-hidden bg-white border-[#efebf5] border mt-1 w-full rounded-lg h-96"
+          >
             <div className="flex h-full p-2 flex-col">
               {isResultsVisible && (
                 <div className="flex h-full w-full gap-6 flex-col">
@@ -328,7 +344,10 @@ export function GithubListing() {
                 </div>
               )}
               {isNoResultsVisible && (
-                <div className="flex justify-center items-center h-full">
+                <div
+                  data-testid="no-results"
+                  className="flex justify-center items-center h-full"
+                >
                   <p className="text-md text-center text-gray-500">
                     No results.
                   </p>
