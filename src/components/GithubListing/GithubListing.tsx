@@ -146,8 +146,11 @@ export function GithubListing() {
     }
   }, [focusedIndex, reposAndUsers]);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  useUnclickMouseListener(dropdownRef?.current, setIsDropdownVisible);
+  const dropdownInputWrapperRef = useRef<HTMLDivElement>(null);
+  useUnclickMouseListener(
+    dropdownInputWrapperRef?.current,
+    setIsDropdownVisible,
+  );
 
   const isResultsVisible = useMemo(
     () =>
@@ -200,7 +203,7 @@ export function GithubListing() {
     <div className="py-6 px-5 bg-white rounded-md flex flex-col border-[#efebf5] border w-full">
       <p className="text-gray-900 mb-1">Search for a repository or a user.</p>
 
-      <div ref={dropdownRef} className="relative">
+      <div ref={dropdownInputWrapperRef} className="relative">
         <input
           onKeyDown={onKeyDown}
           data-testid="search-input"

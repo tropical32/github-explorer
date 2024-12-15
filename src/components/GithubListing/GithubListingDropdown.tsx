@@ -1,9 +1,12 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Repository, User } from "../../types";
 import { isUser } from "../../types/utils";
 import Spinner from "../Spinner/Spinner";
 import RepositoryEntry from "./RepositoryEntry";
 import SearchEntry from "./SearchEntry";
 import UserEntry from "./UserEntry";
+
+const BOTTOM_OFFSET = 5;
 
 type DropdownProps = {
   isResultsVisible: boolean;
@@ -28,10 +31,36 @@ export function Dropdown({
   errorUsers,
   isQueryTooShortVisible,
 }: DropdownProps) {
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownHeight, setDropdownHeight] = useState("0px");
+
+  const onResize = useCallback(() => {
+    const viewportHeight = window.innerHeight;
+
+    if (dropdownRef.current) {
+      const position = dropdownRef.current.getBoundingClientRect();
+      setDropdownHeight(viewportHeight - position.top - BOTTOM_OFFSET + "px");
+    }
+  }, []);
+
+  useEffect(() => {
+    onResize();
+
+    window.addEventListener("resize", () => {
+      onResize();
+    });
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
+  }, [onResize]);
+
   return (
     <div
+      ref={dropdownRef}
       data-testid="dropdown"
-      className="absolute overflow-y-auto overflow-x-hidden bg-white border-[#efebf5] border mt-1 w-full rounded-lg h-96"
+      className="absolute overflow-y-auto overflow-x-hidden bg-white border-[#efebf5] border mt-1 w-full rounded-lg"
+      style={{ height: dropdownHeight }}
     >
       <div className="flex h-full p-2 flex-col">
         {isResultsVisible && (
